@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MoneyConvertor</string>
+
+    <string-array name="currencies">
+        <item>EUR</item>
+        <item>CZK</item>
+        <item>USD</item>
+        <item>RUB</item>
+    </string-array>
+
 </resources>
