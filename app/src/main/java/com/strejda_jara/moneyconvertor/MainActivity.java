@@ -19,7 +19,6 @@ import com.android.volley.toolbox.Volley;
 
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -34,9 +33,6 @@ public class MainActivity extends AppCompatActivity {
     EditText edittextFrom;
     TextView textviewTo;
     Button btnConvert;
-    private double convertedCurrency = 0;
-    private String fromCurrency = "EUR";
-    private String toCurrency = "EUR";
     private String apiKey = "602e2ce3b4ad5516605f9c03";
     private String urlString = "https://v6.exchangerate-api.com/v6/" + apiKey + "/latest/";
 
@@ -70,12 +66,11 @@ public class MainActivity extends AppCompatActivity {
         return dataAdapter;
     }
 
-    public void convert(View view){
+    public void convertBtnAction(View view){
 
-        fromCurrency = (String) spinnerFromCurrency.getSelectedItem();
-        toCurrency = (String) spinnerToCurrency.getSelectedItem();
-
+        String fromCurrency = (String) spinnerFromCurrency.getSelectedItem();
         callApiForCurrencyes(urlString + fromCurrency);
+
     }
 
     void callApiForCurrencyes(String url){
@@ -86,7 +81,8 @@ public class MainActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        getMapOfCurrencyes(response);
+
+                        convert(response);
                     }
                 },
                 new Response.ErrorListener() {
@@ -99,24 +95,13 @@ public class MainActivity extends AppCompatActivity {
         queue.add(request);
     }
 
-    void getMapOfCurrencyes(String response) {
-        Yaml yaml = new Yaml();
-        Map<String, Object> responseData = yaml.load(response);
-        Map<String, Object> currencyesData = (Map<String, Object>) responseData.get("conversion_rates");
+    void convert(String response){
 
-        getValueOfRequiredCurrency(currencyesData);
-    }
+        Map<String, Object> currencyesData = getDataOfCurrencyes(response);
 
-    void getValueOfRequiredCurrency(Map<String, Object> currencyesData) {
+        String toCurrency = (String) spinnerToCurrency.getSelectedItem();
+        double currency = getValueOfRequiredCurrency(currencyesData, toCurrency);
 
-        String currencyResponseValue = "";
-        currencyResponseValue += currencyesData.get(toCurrency);
-
-        double currency = Double.parseDouble(currencyResponseValue);
-        convertMoneyByCurrency(currency);
-    }
-
-    void convertMoneyByCurrency(double currency) {
         double count = 0;
         try {
             count = Double.parseDouble(edittextFrom.getText().toString());
@@ -124,10 +109,34 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("---Reguest error---");
         }
 
-
-        double result = count * currency;
+        double result = convertMoneyByCurrency(currency,count);
 
         showResult(result);
+
+    }
+
+    Map<String, Object> getDataOfCurrencyes(String response) {
+
+        Yaml yaml = new Yaml();
+        Map<String, Object> responseData = yaml.load(response);
+        Map<String, Object> currencyesData = (Map<String, Object>) responseData.get("conversion_rates");
+
+        return currencyesData;
+    }
+
+    double getValueOfRequiredCurrency(Map<String, Object> currencyesData, String toCurrency) {
+
+        String currencyResponseValue = "";
+        currencyResponseValue += currencyesData.get(toCurrency);
+
+        double currency = Double.parseDouble(currencyResponseValue);
+        return currency;
+    }
+
+    double convertMoneyByCurrency(double currency, double count) {
+        double result = count * currency;
+
+        return result;
     }
 
     void showResult(double result) {
